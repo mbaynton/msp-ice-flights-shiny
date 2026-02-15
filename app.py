@@ -179,12 +179,11 @@ def create_bar_chart(daily_data, show_events=True):
             'xanchor': 'right',
             'x': 1
         },
-        height=600,
         margin=dict(b=100, t=150),  # Extra top margin for annotations
         plot_bgcolor='white',
         paper_bgcolor='white',
-        # Enable responsive resizing
-        autosize=True
+        # Enable responsive resizing for width only
+        autosize=True,
     )
     
     # Style the axes
@@ -206,20 +205,7 @@ current_date = date.today()
 default_end_date = min(current_date, max_date)
 
 # Define UI
-app_ui = ui.page_fluid(
-    # Add JavaScript for window resize handling
-    ui.tags.script("""
-        window.addEventListener('resize', function() {
-            // Trigger a resize event for all Plotly charts
-            setTimeout(function() {
-                var plots = document.querySelectorAll('.plotly');
-                for (var i = 0; i < plots.length; i++) {
-                    Plotly.Plots.resize(plots[i]);
-                }
-            }, 100);
-        });
-    """),
-    
+app_ui = ui.page_fluid(    
     ui.div(
         {"class": "container-fluid"},
         ui.h1("ICE Detainee Flight Departures from MSP Airport", class_="text-center mb-4"),
@@ -286,9 +272,7 @@ app_ui = ui.page_fluid(
         
         # Main chart
         ui.div(
-            {"class": "row"},
             ui.div(
-                {"class": "col-12"},
                 ui.h3("Daily Detainee Totals"),
                 ui.p(
                     "This chart shows the total number of detainees on all ICE flights departing MSP each day. "
@@ -297,7 +281,7 @@ app_ui = ui.page_fluid(
                     class_="text-muted mb-3"
                 ),
                 ui.p("Hover over bars for detailed information.", class_="text-muted mb-3"),
-                output_widget("daily_chart", height="600px")
+                output_widget("daily_chart")
             )
         ),
         
