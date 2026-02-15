@@ -205,7 +205,21 @@ current_date = date.today()
 default_end_date = min(current_date, max_date)
 
 # Define UI
-app_ui = ui.page_fluid(    
+app_ui = ui.page_fluid(
+    # CSS to make the Plotly chart fill its card and respond to width changes
+    ui.tags.style("""
+        #daily_chart {
+            height: 65vh !important;
+            min-height: 450px;
+        }
+        #daily_chart .plotly.plot-container,
+        #daily_chart .js-plotly-plot,
+        #daily_chart .plot-container,
+        #daily_chart .svg-container {
+            height: 100% !important;
+            width: 100% !important;
+        }
+    """),
     ui.h1("ICE Detainee Flight Departures from MSP Airport", class_="text-center mb-4"),
     ui.p(
         f"This application visualizes ICE detainee flight data departing MSP Airport "
@@ -256,7 +270,7 @@ app_ui = ui.page_fluid(
                 class_="text-muted mb-3"
             ),
             ui.p("Hover over bars for detailed information.", class_="text-muted mb-3"),
-            output_widget("daily_chart", height="75vh")
+            output_widget("daily_chart")
         ),
         full_screen=True,
     ),
@@ -314,27 +328,22 @@ def server(input, output, session):
         
         return filtered
     
-    @output
     @render_plotly
     def daily_chart():
         return create_bar_chart(filtered_data(), show_events=input.show_events())
     
-    @output
     @render.text
     def days_count():
         return f"{len(filtered_data())}"
     
-    @output 
     @render.text
     def total_detainees():
         return f"{filtered_data()['Deportees'].sum():.0f}"
     
-    @output
     @render.text 
     def observed_detainees():
         return f"{filtered_data()['Deportee (observed)'].sum():.0f}"
     
-    @output
     @render.text
     def average_per_day():
         data = filtered_data()
