@@ -206,134 +206,94 @@ default_end_date = min(current_date, max_date)
 
 # Define UI
 app_ui = ui.page_fluid(    
-    ui.div(
-        {"class": "container-fluid"},
-        ui.h1("ICE Detainee Flight Departures from MSP Airport", class_="text-center mb-4"),
-        ui.p(
-            f"This application visualizes ICE detainee flight data departing MSP Airport "
-            f"({min_date.strftime('%B %Y')} - {max_date.strftime('%B %Y')}).",
-            class_="text-center text-muted mb-4"
-        ),
-        
-        # Date range filter
-        ui.div(
-            {"class": "row mb-4"},
-            ui.div(
-                {"class": "col-12"},
-                ui.div(
-                    {"class": "card"},
-                    ui.div(
-                        {"class": "card-body"},
-                        ui.h5("Filter by Date Range", class_="card-title"),
-                        ui.div(
-                            {"class": "row"},
-                            ui.div(
-                                {"class": "col-md-6"},
-                                ui.input_date(
-                                    "start_date",
-                                    "Start Date:",
-                                    value=min_date,
-                                    min=min_date,
-                                    max=max_date
-                                )
-                            ),
-                            ui.div(
-                                {"class": "col-md-6"},
-                                ui.input_date(
-                                    "end_date", 
-                                    "End Date:",
-                                    value=default_end_date,
-                                    min=min_date,
-                                    max=max_date
-                                )
-                            )
-                        ),
-                        ui.div(
-                            {"class": "row mt-3"},
-                            ui.div(
-                                {"class": "col-12"},
-                                ui.input_checkbox(
-                                    "show_events",
-                                    "Show key events as vertical lines",
-                                    value=True
-                                ),
-                                ui.p("Key events include Operation Metro Surge, personnel changes, and operational milestones.", 
-                                     class_="text-muted small mt-1")
-                            )
-                        ),
-                        ui.div(
-                            {"class": "mt-2"},
-                            ui.input_action_button("reset_dates", "Reset to Full Range", class_="btn btn-outline-secondary btn-sm")
-                        )
-                    )
-                )
-            )
-        ),
-        
-        # Main chart
-        ui.div(
-            ui.div(
-                ui.h3("Daily Detainee Totals"),
-                ui.p(
-                    "This chart shows the total number of detainees on all ICE flights departing MSP each day. "
-                    "Bars are split into observed counts (boarding an aircraft) and estimated counts "
-                    "using means such as capacity of ground vehicles observed.",
-                    class_="text-muted mb-3"
-                ),
-                ui.p("Hover over bars for detailed information.", class_="text-muted mb-3"),
-                output_widget("daily_chart")
-            )
-        ),
-        
-        # Summary statistics
-        ui.div(
-            {"class": "row mt-4"},
-            ui.div(
-                {"class": "col-md-3"},
-                ui.div(
-                    {"class": "card text-center"},
-                    ui.div(
-                        {"class": "card-body"},
-                        ui.output_text("days_count", inline=True),
-                        ui.p("Days with flights", class_="card-text text-muted")
-                    )
-                )
-            ),
-            ui.div(
-                {"class": "col-md-3"}, 
-                ui.div(
-                    {"class": "card text-center"},
-                    ui.div(
-                        {"class": "card-body"},
-                        ui.output_text("total_detainees", inline=True),
-                        ui.p("Total detainees", class_="card-text text-muted")
-                    )
-                )
-            ),
-            ui.div(
-                {"class": "col-md-3"},
-                ui.div(
-                    {"class": "card text-center"},
-                    ui.div(
-                        {"class": "card-body"},
-                        ui.output_text("observed_detainees", inline=True),
-                        ui.p("Observed detainees", class_="card-text text-muted")
-                    )
-                )
-            ),
-            ui.div(
-                {"class": "col-md-3"},
-                ui.div(
-                    {"class": "card text-center"},
-                    ui.div(
-                        {"class": "card-body"},
-                        ui.output_text("average_per_day", inline=True),
-                        ui.p("Average per day", class_="card-text text-muted")
-                    )
-                )
-            )
-        ),
+    ui.h1("ICE Detainee Flight Departures from MSP Airport", class_="text-center mb-4"),
+    ui.p(
+        f"This application visualizes ICE detainee flight data departing MSP Airport "
+        f"({min_date.strftime('%B %Y')} - {max_date.strftime('%B %Y')}).",
+        class_="text-center text-muted mb-4"
     ),
+    
+    # Date range filter card
+    ui.card(
+        ui.card_header("Filter by Date Range"),
+        ui.card_body(
+            ui.layout_columns(
+                ui.input_date(
+                    "start_date",
+                    "Start Date:",
+                    value=min_date,
+                    min=min_date,
+                    max=max_date
+                ),
+                ui.input_date(
+                    "end_date", 
+                    "End Date:",
+                    value=default_end_date,
+                    min=min_date,
+                    max=max_date
+                ),
+                col_widths=(6, 6)
+            ),
+            ui.input_checkbox(
+                "show_events",
+                "Show key events as vertical lines",
+                value=True
+            ),
+            ui.p("Key events include Operation Metro Surge, personnel changes, and operational milestones.", 
+                 class_="text-muted small"),
+            ui.input_action_button("reset_dates", "Reset to Full Range", class_="btn btn-outline-secondary btn-sm")
+        )
+    ),
+    
+    # Main chart card
+    ui.card(
+        ui.card_header("Daily Detainee Totals"),
+        ui.card_body(
+            ui.p(
+                "This chart shows the total number of detainees on all ICE flights departing MSP each day. "
+                "Bars are split into observed counts (boarding an aircraft) and estimated counts "
+                "using means such as capacity of ground vehicles observed.",
+                class_="text-muted mb-3"
+            ),
+            ui.p("Hover over bars for detailed information.", class_="text-muted mb-3"),
+            output_widget("daily_chart", height="75vh")
+        ),
+        full_screen=True,
+    ),
+    
+    # Summary statistics
+    ui.layout_columns(
+        ui.card(
+            ui.card_body(
+                ui.output_text("days_count", inline=True),
+                ui.p("Days with flights", class_="card-text text-muted"),
+                class_="text-center"
+            )
+        ),
+        ui.card(
+            ui.card_body(
+                ui.output_text("total_detainees", inline=True),
+                ui.p("Total detainees", class_="card-text text-muted"),
+                class_="text-center"
+            )
+        ),
+        ui.card(
+            ui.card_body(
+                ui.output_text("observed_detainees", inline=True),
+                ui.p("Observed detainees", class_="card-text text-muted"),
+                class_="text-center"
+            )
+        ),
+        ui.card(
+            ui.card_body(
+                ui.output_text("average_per_day", inline=True),
+                ui.p("Average per day", class_="card-text text-muted"),
+                class_="text-center"
+            )
+        ),
+        col_widths=(3, 3, 3, 3)
+    ),
+    
     theme=shinyswatch.theme.flatly
 )
 
