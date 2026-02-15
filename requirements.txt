@@ -1,0 +1,6 @@
+numbers-parser
+pandas
+shiny
+plotly
+shinyswatch
+shinywidgets
