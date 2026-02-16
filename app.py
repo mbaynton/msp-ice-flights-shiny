@@ -558,6 +558,7 @@ app_ui = ui.page_sidebar(
         ),
         ui.output_ui("events_control"),
         ui.input_action_button("reset_dates", "Reset to Full Range", class_="btn btn-outline-secondary btn-sm"),
+        ui.p("Data compiled by Nick Benson, ", ui.a("MN50501", href="https://mn50501.org", target="_blank")),
         id="sidebar",
     ),
 
