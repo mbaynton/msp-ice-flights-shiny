@@ -275,8 +275,7 @@ def create_horizontal_bar_chart(data, category_col, value_col=None, title='', xa
             orientation='h',
             name='Observed',
             marker_color='#2E86AB',
-            hovertemplate='<b>%{y}</b><br>' +
-                          'Observed: <b>%{x}</b><br>' +
+            hovertemplate='Observed (departing MSP): <b>%{x}</b><br>' +
                           'Total: <b>%{customdata[0]}</b>' +
                           '<extra></extra>',
             customdata=list(zip(totals))
@@ -290,8 +289,7 @@ def create_horizontal_bar_chart(data, category_col, value_col=None, title='', xa
             name='Estimated',
             marker_color='#73b2cc',
             hovertemplate='<b>%{y}</b><br>' +
-                          'Estimated: <b>%{x}</b><br>' +
-                          'Total: <b>%{customdata[0]}</b>' +
+                          'Estimated (departing MSP): <b>%{x}</b><br>' +
                           '%{customdata[1]}' +
                           '<extra></extra>',
             customdata=list(zip(totals, est_hover))

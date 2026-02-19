@@ -10,6 +10,7 @@ from data import (
     aggregate_detainees_offloaded_per_day,
     aggregate_detainees_by_airline,
     aggregate_detainees_by_destination,
+    aggregate_detainees_by_final_destination,
 )
 from charts import (
     create_bar_chart,
@@ -41,7 +42,8 @@ app_ui = ui.page_sidebar(
                 "flights_per_day": "Flights per Day",
                 "detainees_offloaded": "Detainees Offloaded per Day",
                 "detainees_by_airline": "Detainees by Airline",
-                "detainees_by_destination": "Detainees by Destination"
+                "detainees_by_destination": "Detainees by Next Destination",
+                "detainees_by_final_destination": "Detainees by Final Destination",
             },
             selected="daily_detainees"
         ),
@@ -191,7 +193,8 @@ def server(input, output, session):
             "flights_per_day": "Flights per Day",
             "detainees_offloaded": "Detainees Offloaded per Day",
             "detainees_by_airline": "Detainees by Airline",
-            "detainees_by_destination": "Detainees by Destination"
+            "detainees_by_destination": "Detainees by Next Destination",
+            "detainees_by_final_destination": "Detainees by Final Destination"
         }
 
         return headers.get(view, "Data View")
@@ -238,9 +241,23 @@ def server(input, output, session):
             ),
             "detainees_by_destination": ui.TagList(
                 ui.p(
-                    "This chart shows the total number of detainees sent to each destination airport "
-                    "across all flights in the selected date range. "
-                    "Bars are split into observed and estimated counts.",
+                    "This chart shows the total number of detainees by next destination of the flight "
+                    "across all flights in the selected date range. Note that flight plans commonly "
+                    "include more than one destination after MSP, so these numbers should not be interpreted "
+                    "as total number of detainees deplaned at the indicated airport.",
+                    class_="text-muted mb-3"
+                ),
+                ui.p("Hover over bars for detailed information.", class_="text-muted mb-3")
+            ),
+            "detainees_by_final_destination": ui.TagList(
+                ui.p(
+                    "This chart shows the total number of detainees by the final destination airport "
+                    "of each day's route across all flights in the selected date range. "
+                    "The final destination is the last airport in the day's route, "
+                    "unless the aircraft returned to MSP, in which case the preceding airport is used.",
+                    "Note that flight plans commonly "
+                    "include more than one destination after MSP, so these numbers should not be interpreted "
+                    "as total number of detainees deplaned at the indicated airport.",
                     class_="text-muted mb-3"
                 ),
                 ui.p("Hover over bars for detailed information.", class_="text-muted mb-3")
@@ -304,6 +321,18 @@ def server(input, output, session):
                 agg_data,
                 category_col='To',
                 title='Total Detainees by Destination<br><sub>Observed vs estimated detainee counts by destination airport (hover for details)</sub>',
+                xaxis_title='Total Detainees',
+                stacked=True,
+                observed_col='Deportee (observed)',
+                estimated_col='Deportees_Estimated'
+            )
+
+        elif view == "detainees_by_final_destination":
+            agg_data = aggregate_detainees_by_final_destination(filtered_flight_data())
+            return create_horizontal_bar_chart(
+                agg_data,
+                category_col='Final_Destination',
+                title='Total Detainees by Final Destination<br><sub>Observed vs estimated detainee counts by final destination airport (hover for details)</sub>',
                 xaxis_title='Total Detainees',
                 stacked=True,
                 observed_col='Deportee (observed)',

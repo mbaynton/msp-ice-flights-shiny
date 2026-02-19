@@ -52,6 +52,20 @@ def load_data():
         'Est Method (Vehicle, Average, Observer Estimate)': 'Est_Method'
     })
 
+    # Derive Final_Destination from Day's Route (e.g. "HRL-MSP-OMA-HRL")
+    # Use the last airport code, unless it is MSP, in which case use the second to last.
+    def _parse_final_destination(route):
+        if not isinstance(route, str) or not route.strip():
+            return None
+        stops = [s.strip() for s in route.split('-') if s.strip()]
+        if not stops:
+            return None
+        if len(stops) >= 2 and stops[-1].upper() == 'MSP':
+            return stops[-2].upper()
+        return stops[-1].upper()
+
+    df_clean['Final_Destination'] = df_clean["Day’s Route"].apply(_parse_final_destination)
+
     # Calculate estimated detainees (total - observed)
     df_clean['Deportees_Estimated'] = df_clean['Deportees'] - df_clean['Deportee (observed)']
 
@@ -179,3 +193,21 @@ def aggregate_detainees_by_destination(flight_df):
     destination_totals = destination_totals.sort_values('Deportees', ascending=True)
 
     return destination_totals
+
+
+def aggregate_detainees_by_final_destination(flight_df):
+    """Aggregate detainees by final destination airport, split by observed vs estimated."""
+    # Exclude null final destinations
+    valid = flight_df[flight_df['Final_Destination'].notna()].copy()
+
+    totals = valid.groupby('Final_Destination').agg({
+        'Deportees': 'sum',
+        'Deportee (observed)': 'sum',
+        'Deportees_Estimated': 'sum',
+        'Est_Method': _format_est_methods
+    }).reset_index()
+
+    # Sort ascending for horizontal bars (bottom-to-top reading)
+    totals = totals.sort_values('Deportees', ascending=True)
+
+    return totals
