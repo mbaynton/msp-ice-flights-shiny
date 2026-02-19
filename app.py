@@ -11,6 +11,7 @@ from data import (
     aggregate_detainees_by_airline,
     aggregate_detainees_by_destination,
     aggregate_detainees_by_final_destination,
+    aggregate_detainees_by_tail,
 )
 from charts import (
     create_bar_chart,
@@ -42,6 +43,7 @@ app_ui = ui.page_sidebar(
                 "flights_per_day": "Flights per Day",
                 "detainees_offloaded": "Detainees Offloaded per Day",
                 "detainees_by_airline": "Detainees by Airline",
+                "detainees_by_tail": "Detainees by Tail Number",
                 "detainees_by_destination": "Detainees by Next Destination",
                 "detainees_by_final_destination": "Detainees by Final Destination",
             },
@@ -80,6 +82,96 @@ app_ui = ui.page_sidebar(
             height: 100% !important;
             width: 100% !important;
         }
+    """),
+
+    # JavaScript to make tail number y-axis labels clickable links.
+    # Plotly's invisible drag-layer overlay sits on top of axis labels and
+    # intercepts mouse events, so we use a document-level capture-phase
+    # listener and check bounding rectangles to detect label clicks.
+    ui.tags.script("""
+    (function() {
+        var processing = false;
+
+        function styleLabels() {
+            if (processing) return;
+            processing = true;
+            try {
+                var viewSelect = document.getElementById('view_type');
+                if (!viewSelect || viewSelect.value !== 'detainees_by_tail') return;
+
+                var chart = document.querySelector('#daily_chart');
+                if (!chart) return;
+
+                var yticks = chart.querySelectorAll('.ytick text');
+                yticks.forEach(function(tick) {
+                    if (tick.dataset.styled === 'true') return;
+                    tick.dataset.styled = 'true';
+                    tick.style.fill = '#0066cc';
+                    tick.style.textDecoration = 'underline';
+                });
+            } finally {
+                processing = false;
+            }
+        }
+
+        function getLabelAtPoint(x, y) {
+            var viewSelect = document.getElementById('view_type');
+            if (!viewSelect || viewSelect.value !== 'detainees_by_tail') return null;
+
+            var chart = document.querySelector('#daily_chart');
+            if (!chart) return null;
+
+            var yticks = chart.querySelectorAll('.ytick text');
+            for (var i = 0; i < yticks.length; i++) {
+                var rect = yticks[i].getBoundingClientRect();
+                if (x >= rect.left && x <= rect.right &&
+                    y >= rect.top && y <= rect.bottom) {
+                    return yticks[i].textContent.trim();
+                }
+            }
+            return null;
+        }
+
+        // Capture-phase click fires before Plotly's drag layer can swallow it
+        document.addEventListener('click', function(e) {
+            var tail = getLabelAtPoint(e.clientX, e.clientY);
+            if (tail) {
+                window.open(
+                    'https://aerobasegroup.com/tail-number-lookup/' + encodeURIComponent(tail),
+                    '_blank'
+                );
+            }
+        }, true);
+
+        // Show pointer cursor when hovering over a label
+        document.addEventListener('mousemove', function(e) {
+            var chart = document.querySelector('#daily_chart');
+            if (!chart) return;
+            var overlay = chart.querySelector('.draglayer');
+            if (!overlay) return;
+            overlay.style.cursor = getLabelAtPoint(e.clientX, e.clientY) ? 'pointer' : '';
+        });
+
+        var observer = new MutationObserver(function() {
+            requestAnimationFrame(styleLabels);
+        });
+
+        function init() {
+            var chartEl = document.querySelector('#daily_chart');
+            if (chartEl) {
+                observer.observe(chartEl, { childList: true, subtree: true });
+                styleLabels();
+            } else {
+                requestAnimationFrame(init);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
     """),
 
     # Page title
@@ -194,7 +286,8 @@ def server(input, output, session):
             "detainees_offloaded": "Detainees Offloaded per Day",
             "detainees_by_airline": "Detainees by Airline",
             "detainees_by_destination": "Detainees by Next Destination",
-            "detainees_by_final_destination": "Detainees by Final Destination"
+            "detainees_by_final_destination": "Detainees by Final Destination",
+            "detainees_by_tail": "Detainees by Tail Number"
         }
 
         return headers.get(view, "Data View")
@@ -258,6 +351,15 @@ def server(input, output, session):
                     "Note that flight plans commonly "
                     "include more than one destination after MSP, so these numbers should not be interpreted "
                     "as total number of detainees deplaned at the indicated airport.",
+                    class_="text-muted mb-3"
+                ),
+                ui.p("Hover over bars for detailed information.", class_="text-muted mb-3")
+            ),
+            "detainees_by_tail": ui.TagList(
+                ui.p(
+                    "This chart shows the total number of detainees transported on each aircraft (by tail number) "
+                    "across all flights in the selected date range. "
+                    "Bars are split into observed and estimated counts.",
                     class_="text-muted mb-3"
                 ),
                 ui.p("Hover over bars for detailed information.", class_="text-muted mb-3")
@@ -333,6 +435,18 @@ def server(input, output, session):
                 agg_data,
                 category_col='Final_Destination',
                 title='Total Detainees by Final Destination<br><sub>Observed vs estimated detainee counts by final destination airport (hover for details)</sub>',
+                xaxis_title='Total Detainees',
+                stacked=True,
+                observed_col='Deportee (observed)',
+                estimated_col='Deportees_Estimated'
+            )
+
+        elif view == "detainees_by_tail":
+            agg_data = aggregate_detainees_by_tail(filtered_flight_data())
+            return create_horizontal_bar_chart(
+                agg_data,
+                category_col='Tail',
+                title='Total Detainees by Tail Number<br><sub>Observed vs estimated detainee counts by aircraft tail number (hover for details)</sub>',
                 xaxis_title='Total Detainees',
                 stacked=True,
                 observed_col='Deportee (observed)',

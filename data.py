@@ -211,3 +211,22 @@ def aggregate_detainees_by_final_destination(flight_df):
     totals = totals.sort_values('Deportees', ascending=True)
 
     return totals
+
+
+def aggregate_detainees_by_tail(flight_df):
+    """Aggregate detainees by aircraft tail number, split by observed vs estimated."""
+    # Exclude null tail numbers
+    valid = flight_df[flight_df['Tail'].notna()].copy()
+    valid['Tail'] = valid['Tail'].str.strip()
+
+    totals = valid.groupby('Tail').agg({
+        'Deportees': 'sum',
+        'Deportee (observed)': 'sum',
+        'Deportees_Estimated': 'sum',
+        'Est_Method': _format_est_methods
+    }).reset_index()
+
+    # Sort ascending for horizontal bars (bottom-to-top reading)
+    totals = totals.sort_values('Deportees', ascending=True)
+
+    return totals
