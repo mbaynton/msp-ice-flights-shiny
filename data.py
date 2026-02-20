@@ -36,6 +36,7 @@ def load_data():
 
     # The column headers are in row 1 (index 1)
     header_row = df_raw.iloc[1].tolist()
+    print(f"Headers in input data: {header_row}")
 
     # Create cleaned dataframe with proper headers
     # Skip the first row (title) and use row 1 as headers, skip last 2 rows (empty and sum)
@@ -45,7 +46,8 @@ def load_data():
     # Clean up the data types and focus on relevant columns
     df_clean['Date'] = pd.to_datetime(df_clean['Date'])
     df_clean['Deportees'] = pd.to_numeric(df_clean['Deportees'], errors='raise')
-    df_clean['Deportee (observed)'] = pd.to_numeric(df_clean['Deportee (observed)'], errors='raise').fillna(0)
+    # column name change, remaining code uses old 'Deportee (observed)'
+    df_clean['Deportee (observed)'] = pd.to_numeric(df_clean['Deportees on (observed)'], errors='raise').fillna(0)
 
     # Rename the estimation method column for convenience
     df_clean = df_clean.rename(columns={
