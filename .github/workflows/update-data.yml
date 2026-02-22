@@ -44,7 +44,9 @@ jobs:
       - name: Test Shiny app
         if: steps.check_changes.outputs.changed == 'true'
         run: |
-          timeout --preserve-status 10 shiny run app.py
+          timeout --preserve-status 10 shiny run app.py &
+          SHINY_PID=$!
+          wait $SHINY_PID
           EXIT_CODE=$?
 
           if [ $EXIT_CODE -eq 0 ] || [ $EXIT_CODE -eq 143 ]; then
