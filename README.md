@@ -2,6 +2,8 @@
 
 A Python Shiny application for visualizing ICE detainee flight data gathered by volunteer observers at MSP.
 
+Currently hosted [here](https://019c6367-7c6c-2d03-83c2-c5959c6030ab.share.connect.posit.cloud/).
+
 Various breakdowns and aggregations of the data are available via the "View" dropdown. Aggregations are over
 the date range the user chooses.
 
