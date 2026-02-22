@@ -38,6 +38,12 @@ def load_data():
         'Detainees Off': 'Deportees Off'  # Map back to old name
     }).copy()
 
+    # Filter out rows where both Detainees and Deportees Off are null/empty
+    # This removes flights with no detainee data
+    detainees_notna = df_clean['Detainees'].notna()
+    deportees_off_notna = df_clean['Deportees Off'].notna()
+    df_clean = df_clean[detainees_notna | deportees_off_notna].copy()
+
     # Clean up the data types
     df_clean['Date'] = pd.to_datetime(df_clean['Date'])
     df_clean['Deportees'] = pd.to_numeric(df_clean['Detainees'], errors='coerce').fillna(0)
