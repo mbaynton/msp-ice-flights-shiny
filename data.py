@@ -1,4 +1,3 @@
-import numbers_parser
 import pandas as pd
 
 
@@ -22,37 +21,52 @@ def _format_est_methods(methods_series):
 
 
 def load_data():
-    """Load and process the ICE flights data from the Numbers spreadsheet."""
+    """Load and process the ICE flights data from CSV downloaded from Airtable."""
 
-    # Load the Numbers file
-    doc = numbers_parser.Document("msp-ice-flights.numbers")
+    # Load the CSV file
+    df_raw = pd.read_csv("msp-ice-flights.csv")
 
-    # Get the data from the first table in the first sheet
-    table = doc.sheets[0].tables[0]
-    data = table.rows(values_only=True)
+    # The CSV has headers in the first row
+    print(f"Headers in input data: {list(df_raw.columns)}")
 
-    # Convert to pandas DataFrame
-    df_raw = pd.DataFrame(data)
+    # Map Airtable column names to expected internal names
+    df_clean = df_raw.rename(columns={
+        'Detainees On': 'Detainees',  # Airtable column name
+        'Destination': 'To',
+        'Reg': 'Tail',
+        'Aircraft Route (Day)': "Day's Route",
+        'Detainees Off': 'Deportees Off'  # Map back to old name
+    }).copy()
 
-    # The column headers are in row 1 (index 1)
-    header_row = df_raw.iloc[1].tolist()
-    print(f"Headers in input data: {header_row}")
-
-    # Create cleaned dataframe with proper headers
-    # Skip the first row (title) and use row 1 as headers, skip last 2 rows (empty and sum)
-    df_clean = df_raw.iloc[2:-2].copy()
-    df_clean.columns = header_row
-
-    # Clean up the data types and focus on relevant columns
+    # Clean up the data types
     df_clean['Date'] = pd.to_datetime(df_clean['Date'])
-    df_clean['Deportees'] = pd.to_numeric(df_clean['Deportees'], errors='raise')
-    # column name change, remaining code uses old 'Deportee (observed)'
-    df_clean['Deportee (observed)'] = pd.to_numeric(df_clean['Deportees on (observed)'], errors='raise').fillna(0)
+    df_clean['Deportees'] = pd.to_numeric(df_clean['Detainees'], errors='coerce').fillna(0)
 
-    # Rename the estimation method column for convenience
-    df_clean = df_clean.rename(columns={
-        'Est Method (Vehicle, Average, Observer Estimate)': 'Est_Method'
-    })
+    # Derive observed vs estimated from estimation method column
+    # If method is "Counted, by in-situ observer", the count is observed
+    # Otherwise, it's estimated
+    def _parse_observed(row):
+        method = str(row.get('Count Method (Detainees On)', '')).strip()
+        if method == 'Counted, by in-situ observer':
+            return row.get('Deportees', 0)
+        return 0
+
+    df_clean['Deportee (observed)'] = df_clean.apply(_parse_observed, axis=1)
+
+    # Map verbose estimation method to old codes for internal use
+    def _map_estimation_method(method_text):
+        method = str(method_text).strip()
+        if method == 'Counted, by in-situ observer':
+            return ''  # Observed, not estimated
+        elif method == 'Estimated, by in-situ observer':
+            return 'O'
+        elif method == 'Estimated, average of similar adjacent flights':
+            return 'A'
+        elif method == 'Estimated, derived from ICE convoy vehicles':
+            return 'V'
+        return ''
+
+    df_clean['Est_Method'] = df_clean.get('Count Method (Detainees On)', pd.Series()).apply(_map_estimation_method)
 
     # Derive Final_Destination from Day's Route (e.g. "HRL-MSP-OMA-HRL")
     # Use the last airport code, unless it is MSP, in which case use the second to last.
@@ -66,7 +80,7 @@ def load_data():
             return stops[-2].upper()
         return stops[-1].upper()
 
-    df_clean['Final_Destination'] = df_clean["Day’s Route"].apply(_parse_final_destination)
+    df_clean['Final_Destination'] = df_clean["Day's Route"].apply(_parse_final_destination)
 
     # Calculate estimated detainees (total - observed)
     df_clean['Deportees_Estimated'] = df_clean['Deportees'] - df_clean['Deportee (observed)']
