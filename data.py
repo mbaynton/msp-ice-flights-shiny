@@ -53,7 +53,7 @@ def load_data():
     # Otherwise, it's estimated
     def _parse_observed(row):
         method = str(row.get('Count Method (Detainees On)', '')).strip()
-        if method == 'Counted, by in-situ observer':
+        if method.lower().startswith('counted'):
             return row.get('Deportees', 0)
         return 0
 
@@ -62,7 +62,7 @@ def load_data():
     # Map verbose estimation method to old codes for internal use
     def _map_estimation_method(method_text):
         method = str(method_text).strip()
-        if method == 'Counted, by in-situ observer':
+        if method.lower().startswith('counted'):
             return ''  # Observed, not estimated
         elif method == 'Estimated, by in-situ observer':
             return 'O'
