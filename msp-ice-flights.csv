@@ -141,6 +141,7 @@ Minibus,Origin,"Detainees on, observed",Aircraft Route (Day),Callsign,Tracking,D
 0.0,OMA,34.0,ELP-OMA-MSP-AEX-ELP,TYSON45,https://adsb.lol/?icao=a8b479&lat=44.848&lon=-93.233&zoom=12.8&showTrace=2026-05-12&trackLabels&timestamp=1778609340,2026-05-12T19:41:00.000Z,1.0,2026-05-12T18:09:00.000Z,AEX,"Counted, by in situ observer",N660CP,,Tue May 12 2026,3.0,Eastern Air Express ,1.0,30.0,0.0,29.0,2026-05-12
 0.0,OMA,23.0,ELP-OMA-MSP-AEX-ELP,TYSON45,https://adsb.lol/?icao=a82727&lat=44.822&lon=-93.168&zoom=8.9&showTrace=2026-05-15&timestamp=1778867741,2026-05-15T19:33:00.000Z,0.0,2026-05-15T17:57:00.000Z,AEX,"Counted, by in situ observer",N624XA,,Fri May 15 2026,3.0,Eastern Air Express ,2.0,21.0,0.0,23.0,2026-05-15
 0.0,OMA,21.0,ELP-OMA-MSP-AEX-ELP,TYSON45,https://adsb.lol/?icao=a8b479&lat=44.880&lon=-93.228&zoom=13.5&showTrace=2026-05-19&trackLabels&timestamp=1779214262,2026-05-19T19:25:00.000Z,1.0,2026-05-19T18:10:00.000Z,AEX,"Counted, by in situ observer",N660CP,,Tue May 19 2026,2.0,Eastern Air Express ,1.0,21.0,0.0,21.0,2026-05-19
+0.0,ELP,18.0,HRL-ELP-MSP-HRL,GXA6152,,,0.0,2026-05-20T18:08:00.429Z,HRL,"Counted, by in situ observer",N570TA,,Wed May 20 2026,2.0,Global Crossing,2.0,12.0,0.0,18.0,2026-05-20
 ,,,,,,,,2026-05-20T17:46:44.885Z,,,,,Wed May 20 2026,,,,,,,2026-05-20
 ,,,,,,,,2026-05-20T17:53:18.936Z,,,,,Wed May 20 2026,,,,,,,2026-05-20
 ,,,,,,,,2026-05-20T17:41:09.727Z,,,,,Wed May 20 2026,,,,,,,2026-05-20
